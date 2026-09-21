@@ -1,4 +1,4 @@
-name: Clubapp APK (v8a)
+name: Clubapp Windows
 
 on:
   workflow_dispatch:
@@ -10,31 +10,108 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  android:
-    name: Clubapp android-v8a
-    runs-on: ubuntu-latest
-    timeout-minutes: 120
-    env:
-      FCAE_VERSION: "1.0.0"
-      FCAE_VERSION_FULL: "1.0.0"
-      FCAE_IS_PRERELEASE: "false"
+  build-hev-windows:
+    name: hev-socks5-tunnel engine DLL (windows)
+    runs-on: windows-latest
     steps:
       - name: checkout
         uses: actions/checkout@v7
         with:
           submodules: recursive
 
-      - name: setup Java 17
-        uses: actions/setup-java@v6
+      - name: ensure submodules
+        run: |
+          git submodule sync --recursive
+          git submodule update --init --recursive --depth 1
+      - name: setup msys2
+        uses: msys2/setup-msys2@v2
         with:
-          distribution: temurin
-          java-version: '17'
+          msystem: MSYS
+          update: true
+          install: >-
+            make
+            gcc
+      - name: build hev-socks5-tunnel DLL (MSYS)
+        shell: msys2 {0}
+        run: |
+          set -euo pipefail
+          echo "toolchain: $(gcc -dumpmachine) -- $(gcc --version | head -1)"
+          make -C core/hev-socks5-tunnel tp-static -j"$(nproc)"
+          ENG=core/hev-socks5-tunnel
+          mkdir -p "$ENG/build-compat"
+          cat > "$ENG/build-compat/fcae-msys-compat.c" <<'EOF'
+          #include <io.h>
+          #include <stdint.h>
+          #ifdef get_osfhandle
+          #undef get_osfhandle
+          #endif
+          intptr_t _get_osfhandle (int fd);
+          intptr_t get_osfhandle (int fd)
+          {
+              return _get_osfhandle (fd);
+          }
+          EOF
+          gcc -O2 -c "$ENG/build-compat/fcae-msys-compat.c" -o "$ENG/build-compat/fcae-msys-compat.o"
+          LDFLAGS_HEV="-Wl,--export-all-symbols \
+            $PWD/$ENG/build-compat/fcae-msys-compat.o \
+            $PWD/$ENG/third-part/yaml/bin/libyaml.a \
+            $PWD/$ENG/third-part/lwip/bin/liblwip.a \
+            $PWD/$ENG/third-part/hev-task-system/bin/libhev-task-system.a"
+          if [ -n "${MSYSTEM:-}" ]; then
+            make -C "$ENG" shared -j"$(nproc)" LFLAGS="$LDFLAGS_HEV"
+          else
+            make -C "$ENG" shared -j"$(nproc)" LFLAGS="$LDFLAGS_HEV -lws2_32 -lIphlpapi"
+          fi
+          test -s core/hev-socks5-tunnel/bin/libhev-socks5-tunnel.so
+          test -s core/hev-socks5-tunnel/third-part/yaml/bin/libyaml.so
+          test -s core/hev-socks5-tunnel/third-part/lwip/bin/liblwip.so
+          test -s core/hev-socks5-tunnel/third-part/hev-task-system/bin/libhev-task-system.so
+          mkdir -p engine
+          mv core/hev-socks5-tunnel/bin/libhev-socks5-tunnel.so engine/libhev-socks5-tunnel.dll
+          cp -v core/hev-socks5-tunnel/third-part/yaml/bin/libyaml.so engine/
+          cp -v core/hev-socks5-tunnel/third-part/lwip/bin/liblwip.so engine/
+          cp -v core/hev-socks5-tunnel/third-part/hev-task-system/bin/libhev-task-system.so engine/
+          if command -v ldd >/dev/null 2>&1; then
+            for dll in engine/libhev-socks5-tunnel.dll engine/*.so; do
+              ldd "$dll" |
+                awk '$3 ~ /^\/usr\/bin\// { print $3 }' | sort -u |
+                while read -r lib; do
+                  cp -v "$lib" engine/
+                done
+            done
+          fi
+          if [ -n "${MSYSTEM:-}" ]; then
+            test -s engine/msys-2.0.dll
+          fi
+          ls -l engine
+      - name: hand the engine DLL to the windows-x64 leg
+        uses: actions/cache/save@v6
+        with:
+          path: engine
+          key: hev-windows-engine-${{ github.run_id }}-${{ github.run_attempt }}
+          enableCrossOsArchive: true
+
+  build:
+    name: Clubapp windows-x64
+    needs: [build-hev-windows]
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      FCAE_VERSION: "1.0.0"
+      FCAE_VERSION_FULL: "1.0.0"
+      FCAE_IS_PRERELEASE: "false"
+      TARGET: x86_64-pc-windows-gnu
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
 
       - name: ensure submodules
         run: |
           git submodule sync --recursive
           git submodule update --init --recursive --depth 1
-      # ---- Clubapp branding: name, icons, Telegram link, no links to the original author ----
+      # ---- Clubapp branding: name, icon, Telegram link, no links to the original author ----
       - name: apply Clubapp branding
         env:
           REPO_SLUG: ${{ github.repository }}
@@ -48,8 +125,6 @@ jobs:
           import numpy as np
           from collections import deque
           from PIL import Image, ImageDraw, ImageFilter, ImageChops
-          ROOT = "android/app/src/main"
-          RES = ROOT + "/res"
           SRC = "/tmp/clubapp_icon.png"
           N = 1024
           # ---------------------------------------------------------------- master icon
@@ -112,138 +187,106 @@ jobs:
                   mask = mask.resize((size, size), Image.LANCZOS)
                   img.putalpha(ImageChops.multiply(img.getchannel("A"), mask))
               return img
-          # ---------------------------------------------------- adaptive icon resources
-          ADAPT = 432
-          fg = Image.new("RGBA", (N, N), (0, 0, 0, 0))
-          s = int(N * 0.725)                       # text stays inside the 66% safe zone
-          fg.paste(txt_img.resize((s, s), Image.LANCZOS), ((N - s) // 2, (N - s) // 2))
-          dn = os.path.join(RES, "drawable-nodpi")
-          os.makedirs(dn, exist_ok=True)
-          bg_img.resize((ADAPT, ADAPT), Image.LANCZOS).convert("RGB").save(os.path.join(dn, "clubapp_ic_bg.png"))
-          fg.resize((ADAPT, ADAPT), Image.LANCZOS).save(os.path.join(dn, "clubapp_ic_fg.png"))
-          ADAPTIVE_XML = """<?xml version="1.0" encoding="utf-8"?>
-          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-              <background android:drawable="@drawable/clubapp_ic_bg"/>
-              <foreground android:drawable="@drawable/clubapp_ic_fg"/>
-          </adaptive-icon>
-          """
-          names = {"ic_launcher", "ic_launcher_round"}
-          try:
-              man = open(ROOT + "/AndroidManifest.xml", encoding="utf-8").read()
-              names |= set(re.findall(r'android:(?:icon|roundIcon)="@mipmap/([^"]+)"', man))
-          except Exception as e:
-              print("manifest not read:", e)
-          v26 = os.path.join(RES, "mipmap-anydpi-v26")
-          os.makedirs(v26, exist_ok=True)
-          written = []
-          for n in sorted(names):
-              open(os.path.join(v26, n + ".xml"), "w").write(ADAPTIVE_XML)
-              written.append(n + ".xml")
-          for d in os.listdir(RES):                # any other adaptive-icon xml (v33 etc.)
-              if d.startswith("mipmap-anydpi") and d != "mipmap-anydpi-v26":
-                  for f in os.listdir(os.path.join(RES, d)):
-                      p = os.path.join(RES, d, f)
-                      if f.endswith(".xml") and "adaptive-icon" in open(p, encoding="utf-8").read():
-                          open(p, "w").write(ADAPTIVE_XML)
-                          written.append(d + "/" + f)
-          print("Adaptive icon xml written:", written)
-          # ------------------------------------------------------------ legacy bitmap icons
-          def save_img(img, path):
-              if path.lower().endswith(".webp"):
-                  img.save(path, "WEBP", lossless=True)
-              else:
-                  img.save(path)
-          icons = []
-          for d, _, files in os.walk(RES):
-              if "anydpi" in d or "drawable-nodpi" in d:
-                  continue
-              for f in files:
-                  low = f.lower()
-                  if not low.endswith((".png", ".webp")):
-                      continue
-                  p = os.path.join(d, f)
-                  w, h = Image.open(p).size
-                  if "launcher" in low and "foreground" not in low and "background" not in low:
-                      save_img(legacy(w, "round" in low), p)
-                      icons.append(p)
-                  elif re.search(r"(^|_)(logo|splash|app_icon)(_|\.|$)", low):
-                      side = min(w, h)
-                      canvas = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-                      canvas.paste(legacy(side, False), ((w - side) // 2, (h - side) // 2))
-                      save_img(canvas, p)
-                      icons.append(p)
-          print("Bitmaps replaced:", len(icons))
-          for p in icons:
-              print("  ", p)
-          # ------------------------------------------------------ name + Telegram link
-          tme, edited = set(), []
-          for d, _, files in os.walk(ROOT):
-              for f in files:
-                  if not f.endswith((".xml", ".kt", ".java")):
-                      continue
-                  p = os.path.join(d, f)
-                  try:
-                      t = open(p, encoding="utf-8").read()
-                  except Exception:
-                      continue
-                  n = t.replace("FCAE VPN", "Clubapp")
-                  n = re.sub(r'(<string name="app_name"[^>]*>)[^<]*(</string>)', r'\1Clubapp\2', n)
-                  tme.update(re.findall(r'https?://t\.me/[A-Za-z0-9_+]+', n))
-                  n = re.sub(r'https?://t\.me/[A-Za-z0-9_+]+', 'https://t.me/Clubapp8', n)
-                  if n != t:
-                      open(p, "w", encoding="utf-8").write(n)
-                      edited.append(p)
-          print("Files edited:", len(edited))
-          for p in edited:
-              print("  ", p)
-          print("Telegram links found and replaced:", sorted(tme))
-          # --------------------- creator links -> Telegram, update source -> this fork
-          REPO = os.environ.get("REPO_SLUG", "Mrmmd2004/FCAE_VPN")
-          PAGE = re.compile(r'https?://(?:www\.)?github\.com/FCFlenkchy[^\s"\'<>)\\]*', re.I)
-          SKIP = {"target", "build", ".gradle", "third_party", "node_modules", ".git"}
-          EXT = (".kt", ".java", ".xml", ".rs", ".cpp", ".cc", ".c", ".h", ".hpp", ".mm", ".kts")
-          link_edits, left = [], []
-          for base in ("android/app/src/main", "src_cpp", "include", "core/fcae-ffi"):
+          # ------------------------------------------------ replace desktop icons
+          SKIP = {"target", "build", ".gradle", "third_party", "node_modules", ".git", "third-part"}
+          BASES = ("src_cpp", "include", "core/fcae-ffi")
+          img_all, img_changed = [], []
+          for base in BASES:
               for d, dirs, files in os.walk(base):
                   dirs[:] = [x for x in dirs if x not in SKIP]
                   for f in files:
-                      if not f.endswith(EXT):
+                      low = f.lower()
+                      if not low.endswith((".png", ".ico", ".jpg", ".jpeg", ".bmp")):
                           continue
                       p = os.path.join(d, f)
                       try:
-                          t = open(p, encoding="utf-8").read()
+                          im = Image.open(p)
+                          w, h = im.size
                       except Exception:
                           continue
-                      n = PAGE.sub("https://t.me/Clubapp8", t)
-                      n = re.sub(r"FCFlenkchy/FCAE_VPN", REPO, n, flags=re.I)
-                      if n != t:
-                          open(p, "w", encoding="utf-8").write(n)
-                          link_edits.append(p)
-                      for i, line in enumerate(n.splitlines(), 1):
-                          if re.search(r"fcflenkchy", line, re.I):
-                              left.append("%s:%d: %s" % (p, i, line.strip()[:110]))
-          print("Creator-link files changed:", len(link_edits))
-          for p in link_edits:
+                      img_all.append("%s (%dx%d)" % (p, w, h))
+                      if not re.search(r"icon|logo|splash|app|fcae|brand", low):
+                          continue
+                      if low.endswith(".ico"):
+                          try:
+                              sizes = sorted(im.info.get("sizes") or {(w, h)})
+                          except Exception:
+                              sizes = [(w, h)]
+                          icon_full.save(p, format="ICO", sizes=list(sizes))
+                          img_changed.append(p + " (ico " + str(sizes) + ")")
+                      elif low.endswith(".png"):
+                          side = min(w, h)
+                          canvas = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+                          canvas.paste(legacy(side, False), ((w - side) // 2, (h - side) // 2))
+                          canvas.save(p)
+                          img_changed.append("%s (%dx%d)" % (p, w, h))
+          print("Image files found in source folders:", len(img_all))
+          for x in sorted(img_all):
+              print("  ", x)
+          print("Icons replaced:", len(img_changed))
+          for x in img_changed:
+              print("  ", x)
+          # ------------------------------------------------ name + Telegram + creator links
+          REPO = os.environ.get("REPO_SLUG", "Mrmmd2004/FCAE_VPN")
+          PAGE = re.compile(r'https?://(?:www\.)?github\.com/FCFlenkchy[^\s"\'<>)\\]*', re.I)
+          TME = re.compile(r'https?://t\.me/[A-Za-z0-9_+]+')
+          EXT = (".cpp", ".cc", ".c", ".h", ".hpp", ".mm", ".rc", ".rs", ".in", ".manifest")
+          files_to_edit = ["CMakeLists.txt"]
+          for base in BASES:
+              for d, dirs, files in os.walk(base):
+                  dirs[:] = [x for x in dirs if x not in SKIP]
+                  for f in files:
+                      if f.endswith(EXT) or f == "CMakeLists.txt":
+                          files_to_edit.append(os.path.join(d, f))
+          edited, tme_found, left_name, left_creator = [], set(), [], []
+          for p in files_to_edit:
+              try:
+                  t = open(p, encoding="utf-8").read()
+              except Exception:
+                  continue
+              n = t
+              if not p.startswith("core/"):
+                  n = n.replace("FCAE VPN", "Clubapp")
+              tme_found.update(TME.findall(n))
+              n = TME.sub("https://t.me/Clubapp8", n)
+              n = PAGE.sub("https://t.me/Clubapp8", n)
+              n = re.sub(r"FCFlenkchy/FCAE_VPN", REPO, n, flags=re.I)
+              if n != t:
+                  open(p, "w", encoding="utf-8").write(n)
+                  edited.append(p)
+              for i, line in enumerate(n.splitlines(), 1):
+                  if re.search(r"fcflenkchy", line, re.I):
+                      left_creator.append("%s:%d: %s" % (p, i, line.strip()[:110]))
+                  elif not p.startswith("core/") and re.search(r"fcae", line, re.I):
+                      left_name.append("%s:%d: %s" % (p, i, line.strip()[:110]))
+          print("Files edited:", len(edited))
+          for p in edited:
               print("  ", p)
-          print("Lines still mentioning the creator:", len(left))
-          for l in left[:40]:
+          print("Telegram links found and replaced:", sorted(tme_found))
+          print("Lines still mentioning the creator:", len(left_creator))
+          for l in left_creator[:40]:
               print("  ", l)
-          # ------------------------------------------- what other images the app has
-          cands = []
-          for d, _, files in os.walk(RES):
-              for f in files:
-                  low = f.lower()
-                  if low.endswith((".png", ".webp", ".jpg", ".jpeg")) and re.search(r"icon|logo|splash|banner|brand|fcae|mountain|header", low):
-                      p = os.path.join(d, f)
-                      try:
-                          w, h = Image.open(p).size
-                      except Exception:
-                          continue
-                      cands.append("%s (%dx%d)" % (p.replace(RES + "/", ""), w, h))
-          print("Image files that look like logos:", len(cands))
-          for c in sorted(cands)[:60]:
-              print("  ", c)
+          print("Lines still containing 'FCAE' (for a second pass):", len(left_name))
+          for l in left_name[:60]:
+              print("  ", l)
           PY
+      - name: restore hev engine DLL
+        uses: actions/cache/restore@v6
+        with:
+          path: engine
+          key: hev-windows-engine-${{ github.run_id }}-${{ github.run_attempt }}
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+
+      - name: publish hev engine DLL
+        run: |
+          set -euo pipefail
+          ENGINE="$GITHUB_WORKSPACE/engine"
+          test -s "$ENGINE/libhev-socks5-tunnel.dll"
+          test -s "$ENGINE/msys-2.0.dll"
+          echo "FCAE_HEV_DLL=$ENGINE/libhev-socks5-tunnel.dll" >> "$GITHUB_ENV"
+          echo "FCAE_HEV_ENGINE_DIR=$ENGINE" >> "$GITHUB_ENV"
+          ls -la "$ENGINE"
       - name: setup go
         uses: actions/setup-go@v7
         with:
@@ -260,61 +303,47 @@ jobs:
           echo "GOTOOLCHAIN=auto" >> "$GITHUB_ENV"
           go version
           go env GOTOOLCHAIN
-      - name: setup ndk
-        id: setup-ndk
-        uses: nttld/setup-ndk@v1
-        with:
-          ndk-version: r27
-          link-to-sdk: true
-
+      - name: install deps (windows cross-compiler)
+        timeout-minutes: 15
+        run: |
+          set -euxo pipefail
+          sudo systemctl stop unattended-upgrades apt-daily.service apt-daily-upgrade.service 2>/dev/null || true
+          while sudo fuser /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock /var/cache/apt/archives/lock >/dev/null 2>&1; do
+            echo "waiting for boot-time apt processes to release locks..."
+            sleep 5
+          done
+          sudo DEBIAN_FRONTEND=noninteractive apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 binutils-mingw-w64-x86-64 nasm \
+            cmake ninja-build
+          which x86_64-w64-mingw32-gcc x86_64-w64-mingw32-g++
+          x86_64-w64-mingw32-gcc --version | head -1
       - name: install rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-linux-android
+          targets: x86_64-pc-windows-gnu
           components: rust-src
 
-      - name: Build Psiphon Android AAR from pinned source
-        shell: bash
-        run: |
-          set -euo pipefail
-          ROOT="$PWD"
-          PSIPHON_REV=$(git rev-parse HEAD:core/psiphon)
-          test "$(git -C core/psiphon rev-parse HEAD)" = "$PSIPHON_REV"
-          PSIPHON_GIT_DIR=$(git -C core/psiphon rev-parse --absolute-git-dir)
-          echo "Building core/psiphon at $PSIPHON_REV"
-          docker build --platform=linux/amd64 -t fcae-psiphon-android \
-            -f core/psiphon/MobileLibrary/Android/Dockerfile core/psiphon/MobileLibrary
-          docker run --platform=linux/amd64 --rm \
-            --user "$(id -u):$(id -g)" \
-            -e HOME=/tmp -e GOCACHE=/tmp/go-cache \
-            -e GIT_DIR=/psiphon-git \
-            -e GIT_WORK_TREE=/go/src/github.com/Psiphon-Labs/psiphon-tunnel-core \
-            -e PSIPHON_REV="$PSIPHON_REV" \
-            -v "$PSIPHON_GIT_DIR:/psiphon-git:ro" \
-            -v "$ROOT/core/psiphon:/go/src/github.com/Psiphon-Labs/psiphon-tunnel-core" \
-            fcae-psiphon-android /bin/bash -c '
-              set -euo pipefail
-              cd "$GIT_WORK_TREE/MobileLibrary/Android"
-              test "$(git rev-parse HEAD)" = "$PSIPHON_REV"
-              git rev-parse --short=10 HEAD
-              ./make.bash
-            '
-          mkdir -p android/psiphon/libs
-          cp core/psiphon/MobileLibrary/Android/ca.psiphon.aar android/psiphon/libs/
-          INSPECT=$(mktemp -d)
-          trap 'rm -rf "$INSPECT"' EXIT
-          unzip -q android/psiphon/libs/ca.psiphon.aar 'jni/*' -d "$INSPECT"
-          for ABI in arm64-v8a armeabi-v7a x86 x86_64; do
-            LIB="$INSPECT/jni/$ABI/libgojni.so"
-            test -s "$LIB"
-            readelf -lW "$LIB" | awk '$1 == "LOAD" { found=1; if ($NF != "0x4000") bad=1 } END { exit (!found || bad) }'
-          done
+      - name: cache rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: windows-x64
+          workspaces: |
+            core -> target
+          cache-on-failure: true
+
       - name: fetch imgui
         run: |
           mkdir -p third_party
           if [ ! -d "third_party/imgui" ]; then
             git clone --depth 1 --branch v1.91.8 https://github.com/ocornut/imgui.git third_party/imgui
           fi
+      - name: cache zig
+        uses: actions/cache@v6
+        with:
+          path: ${{ runner.tool_cache }}/zig-0.16.0
+          key: zig-0.16.0-${{ runner.os }}-${{ runner.arch }}
+
       - name: setup zig
         shell: bash
         run: |
@@ -326,7 +355,6 @@ jobs:
           PREFIX="${RUNNER_TOOL_CACHE}/zig-${ZIG_VER}"
           mkdir -p "$PREFIX"
           if [ ! -x "${PREFIX}/zig" ]; then
-            file_sha() { sha256sum "$1" | awk '{print $1}'; }
             URLS=(
               "https://ziglang.org/download/${ZIG_VER}/${ARCHIVE}"
               "https://ziglang.freetls.fastly.net/${ARCHIVE}"
@@ -355,7 +383,7 @@ jobs:
               rm -f "$TMP"
               if curl -fL --retry 3 --retry-delay 2 --retry-all-errors \
                    --connect-timeout 20 --max-time 180 -o "$TMP" "$url" \
-                   && [ "$(file_sha "$TMP")" = "$SHA" ]; then
+                   && [ "$(sha256sum "$TMP" | awk '{print $1}')" = "$SHA" ]; then
                 ok=1
                 break
               fi
@@ -375,243 +403,76 @@ jobs:
         run: |
           set -euo pipefail
           cd core/zeptun
-          SYSROOT="${ANDROID_NDK_HOME:?}/toolchains/llvm/prebuilt/linux-x86_64/sysroot"
-          test -d "$SYSROOT/usr/include"
-          LIBC_DIR="$(mktemp -d)"
-          trap 'rm -rf "$LIBC_DIR"' EXIT
-          for abi in arm64-v8a; do
-            case "$abi" in
-              arm64-v8a)   ZIG_TARGET=aarch64-linux-android.24; NDK_TARGET=aarch64-linux-android ;;
-              armeabi-v7a) ZIG_TARGET=arm-linux-androideabi.24; NDK_TARGET=arm-linux-androideabi ;;
-              x86_64)      ZIG_TARGET=x86_64-linux-android.24; NDK_TARGET=x86_64-linux-android ;;
-              x86)         ZIG_TARGET=x86-linux-android.24; NDK_TARGET=i686-linux-android ;;
-            esac
-            test -d "$SYSROOT/usr/include/$NDK_TARGET"
-            test -f "$SYSROOT/usr/lib/$NDK_TARGET/24/libc.so"
-            test -f "$SYSROOT/usr/lib/$NDK_TARGET/24/crtbegin_so.o"
-            printf '%s\n' \
-              "include_dir=$SYSROOT/usr/include" \
-              "sys_include_dir=$SYSROOT/usr/include/$NDK_TARGET" \
-              "crt_dir=$SYSROOT/usr/lib/$NDK_TARGET/24" \
-              'msvc_lib_dir=' 'kernel32_lib_dir=' 'gcc_dir=' > "$LIBC_DIR/$abi.conf"
-            zig build -Dtarget="$ZIG_TARGET" -Doptimize=ReleaseSmall -Dstrip=true \
-              -Dandroid-libc="$LIBC_DIR/$abi.conf" --libc "$LIBC_DIR/$abi.conf" \
-              --prefix "$PWD/zig-out/android/$abi"
-            install -D -m 644 "zig-out/android/$abi/lib/libzeptun.a" \
-              "zig-out/android/prebuilt/$abi/libzeptun.a"
+          # Static and shared Windows artifacts otherwise share a basename;
+          # the DLL import library can overwrite the static archive.
+          sed -i 's/\.name = if (target\.result\.abi == \.msvc) "zeptun_static" else "zeptun"/.name = "fcae_zeptun_static"/' build.zig
+          zig build -Dtarget=x86_64-windows-gnu -Doptimize=ReleaseSmall
+          STATIC_ZEPTUN=""
+          for candidate in zig-out/lib/libfcae_zeptun_static.a zig-out/lib/libfcae_zeptun_static.lib zig-out/lib/fcae_zeptun_static.lib; do
+            if [ -s "$candidate" ]; then STATIC_ZEPTUN="$candidate"; break; fi
           done
-          if [[ -f zig-out/lib/zeptun.lib ]]; then
-            mv zig-out/lib/zeptun.lib zig-out/lib/libzeptun.a
-          fi
-          rm -f zig-out/lib/*.dll zig-out/lib/*.dll.a zig-out/lib/*.so* zig-out/lib/*.dylib
-          for abi in arm64-v8a; do
-            test -s "zig-out/android/prebuilt/$abi/libzeptun.a"
-          done
-        env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-
-      - name: build hev-socks5-tunnel engine (libhev-socks5-tunnel)
-        shell: bash
-        run: |
-          set -euo pipefail
-          cd core/hev-socks5-tunnel
-          if [ -z "${ANDROID_NDK_HOME:-}" ]; then
-            echo "::error::ANDROID_NDK_HOME not set, cannot build hev-socks5-tunnel"
+          if [ -z "$STATIC_ZEPTUN" ]; then
+            echo "::error::Zig did not emit the uniquely named static zeptun archive"
+            ls -la zig-out/lib
             exit 1
           fi
-          TOOLCHAIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64"
-          ABIS="arm64-v8a"
-          STAGE="$RUNNER_TEMP/hev-android"
-          rm -rf "$STAGE"
-          for abi in $ABIS; do
-            echo "  -> Building hev-socks5-tunnel for $abi"
-            make clean
-            case "$abi" in
-              arm64-v8a)    CLANG_TARGET=aarch64-linux-android ;;
-              armeabi-v7a)  CLANG_TARGET=armv7a-linux-androideabi ;;
-              x86_64)       CLANG_TARGET=x86_64-linux-android ;;
-              *) echo "::error::Unsupported Android ABI: $abi"; exit 1 ;;
-            esac
-            ANDROID_CFLAGS="-fPIC -DFD_SET_DEFINED -DSOCKLEN_T_DEFINED -Wno-error"
-            if [ "$abi" = "armeabi-v7a" ]; then
-              ANDROID_CFLAGS="$ANDROID_CFLAGS -mfpu=neon"
-            fi
-            make static \
-              CC="$TOOLCHAIN/bin/${CLANG_TARGET}24-clang" \
-              AR="$TOOLCHAIN/bin/llvm-ar" \
-              STRIP="$TOOLCHAIN/bin/llvm-strip" \
-              PP="$TOOLCHAIN/bin/${CLANG_TARGET}24-clang -E" \
-              CFLAGS="$ANDROID_CFLAGS"
-            mkdir -p "$STAGE/$abi"
-            cp bin/libhev-socks5-tunnel.a \
-               third-part/lwip/bin/liblwip.a \
-               third-part/yaml/bin/libyaml.a \
-               third-part/hev-task-system/bin/libhev-task-system.a \
-               "$STAGE/$abi/"
-          done
-          for abi in $ABIS; do
-            mkdir -p "bin/android/$abi"
-            cp "$STAGE/$abi/"*.a "bin/android/$abi/"
-            test -s "bin/android/$abi/libhev-socks5-tunnel.a"
-          done
-          ls -lh bin/android/*/lib*.a
-        env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-
-      - name: patch bridges (platform module, only if needed)
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          import re, os
-
-          BASE = "core/fcae-ffi/bridges/"
-
-          def patch(p, add_stub):
-              if not os.path.exists(p):
-                  print("skip (missing):", p)
-                  return
-              s = open(p, encoding="utf-8").read()
-              orig = s
-              stub = "\n#[cfg(not(windows))]\npub mod platform {\n    pub fn is_privileged() -> bool {\n        true\n    }\n}\n"
-              if add_stub and "#[cfg(not(windows))]" not in s:
-                  s = re.sub(r"(#\[cfg\(windows\)\]\s*mod platform;)", lambda m: m.group(1) + stub, s, count=1)
-              s = re.sub(r"(?m)^mod platform", "pub mod platform", s)
-              if s != orig:
-                  open(p, "w", encoding="utf-8").write(s)
-                  print("patched:", p)
-              else:
-                  print("no change needed:", p)
-
-          patch(BASE + "hev-socks5-tunnel/src/lib.rs", True)
-          patch(BASE + "zeptun/src/lib.rs", False)
-          PY
-
+          if strings "$STATIC_ZEPTUN" | grep -qiE '(^|[^[:alnum:]_])zeptun\.dll([^[:alnum:]_]|$)'; then
+            echo "::error::the uniquely named zeptun archive is an import library"
+            exit 1
+          fi
+          cp "$STATIC_ZEPTUN" zig-out/lib/libzeptun.a
+          rm -f zig-out/lib/*.dll zig-out/lib/*.dll.a zig-out/lib/*.so* zig-out/lib/*.dylib
+          if ls zig-out/lib/*.dll zig-out/lib/*.dll.a >/dev/null 2>&1; then
+            echo "::error::shared zeptun artifacts survived the purge:"
+            ls -la zig-out/lib
+            exit 1
+          fi
+          test -s zig-out/lib/libzeptun.a
       - name: build rust (engine + ffi, in-process)
         run: |
           set -euo pipefail
           rm -rf target/release/build/aether-engine-* target/debug/build/aether-engine-* 2>/dev/null || true
-          NDK="${ANDROID_NDK_HOME:-${{ steps.setup-ndk.outputs.ndk-path }}}"
-          if [ -z "$NDK" ] || [ ! -d "$NDK" ]; then
-            echo "ANDROID_NDK_HOME not set or missing: $NDK"
-            exit 1
-          fi
-          PREBUILT="$NDK/toolchains/llvm/prebuilt/linux-x86_64"
-          BIN="$PREBUILT/bin"
-          export PATH="$BIN:$PATH"
-          export ANDROID_NDK_HOME="$NDK"
-          export ANDROID_NDK_ROOT="$NDK"
-          for TARGET_TRIPLE in aarch64-linux-android; do
-            echo "  -> Building for $TARGET_TRIPLE"
-            if [ "$TARGET_TRIPLE" = "aarch64-linux-android" ]; then
-              NDK_CLANG_PREFIX=aarch64-linux-android
-              RUST_ENV_LOWER=aarch64_linux_android
-              RUST_ENV_UPPER=AARCH64_LINUX_ANDROID
-              HEV_ABI=arm64-v8a
-            elif [ "$TARGET_TRIPLE" = "x86_64-linux-android" ]; then
-              NDK_CLANG_PREFIX=x86_64-linux-android
-              RUST_ENV_LOWER=x86_64_linux_android
-              RUST_ENV_UPPER=X86_64_LINUX_ANDROID
-              HEV_ABI=x86_64
-            else
-              NDK_CLANG_PREFIX=armv7a-linux-androideabi
-              RUST_ENV_LOWER=armv7_linux_androideabi
-              RUST_ENV_UPPER=ARMV7_LINUX_ANDROIDEABI
-              HEV_ABI=armeabi-v7a
-            fi
-            CLANG="$BIN/${NDK_CLANG_PREFIX}24-clang"
-            CLANGXX="$BIN/${NDK_CLANG_PREFIX}24-clang++"
-            export "CC_${RUST_ENV_LOWER}"="$CLANG"
-            export "CXX_${RUST_ENV_LOWER}"="$CLANGXX"
-            export "AR_${RUST_ENV_LOWER}"="$BIN/llvm-ar"
-            export "CARGO_TARGET_${RUST_ENV_UPPER}_LINKER"="$CLANG"
-            export "CARGO_TARGET_${RUST_ENV_UPPER}_AR"="$BIN/llvm-ar"
-            ln -sf "$CLANG" "$BIN/${NDK_CLANG_PREFIX}-clang"
-            ln -sf "$CLANGXX" "$BIN/${NDK_CLANG_PREFIX}-clang++"
-            export CC="${NDK_CLANG_PREFIX}24-clang"
-            export CXX="${NDK_CLANG_PREFIX}24-clang++"
-            export AR=llvm-ar
-            export "BINDGEN_EXTRA_CLANG_ARGS_${RUST_ENV_LOWER}"="--sysroot=$PREBUILT/sysroot"
-            export "CFLAGS_${RUST_ENV_LOWER}"="--sysroot=$PREBUILT/sysroot"
-            export "CXXFLAGS_${RUST_ENV_LOWER}"="--sysroot=$PREBUILT/sysroot"
-            export FCAE_HEV_LIBDIR="$(pwd)/core/hev-socks5-tunnel/bin/android/$HEV_ABI"
-            export FCAE_ZEPTUN_LIBDIR="$(pwd)/core/zeptun/zig-out/android/prebuilt/$HEV_ABI"
-            cargo build --manifest-path core/fcae-ffi/Cargo.toml --release --target "$TARGET_TRIPLE" -p fcae-ffi --features aether,tor,psiphon,zeptun,hev
-            DEST="$(pwd)/target/$TARGET_TRIPLE/release/libfcae_ffi.a"
-            ls -lh "$DEST"
-            test -f "$DEST"
-          done
-          echo "All Android Rust targets built successfully"
+          cargo build --manifest-path core/fcae-ffi/Cargo.toml --release --target "$TARGET" -p fcae-ffi --features aether,tor,psiphon-live,zeptun,hev
+          DEST="$(pwd)/target/$TARGET/release/libfcae_ffi.a"
+          ls -lh "$DEST"
+          test -f "$DEST"
         env:
           CARGO_TARGET_DIR: ${{ github.workspace }}/target
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          RUSTFLAGS: '-C target-feature=+crt-static -C link-args=-static-libgcc -C link-args=-static-libstdc++ -C link-args=-Wl,-Bstatic -C link-args=-lpthread -C link-args=-lwinpthread -C link-args=-Wl,-Bdynamic'
 
-      - name: build apk
-        env:
-          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-          ANDROID_HOME: /usr/local/lib/android/sdk
+      - name: build frontend (windows)
         run: |
-          if [ ! -d "$ANDROID_HOME/cmdline-tools/latest" ]; then
-            mkdir -p "$ANDROID_HOME/cmdline-tools"
-            cd "$ANDROID_HOME/cmdline-tools"
-            wget -q --tries=3 --timeout=60 https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O tools.zip
-            unzip -q tools.zip
-            mv cmdline-tools latest
-          fi
-          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
-          yes | sdkmanager --licenses || true
-          sdkmanager "platforms;android-36" "build-tools;36.0.0"
-          cat > /tmp/abi.init.gradle <<'GRADLE'
-          allprojects {
-              plugins.withId('com.android.application') {
-                  androidComponents.finalizeDsl { dsl ->
-                      try {
-                          dsl.defaultConfig.ndk.abiFilters.clear()
-                          dsl.defaultConfig.ndk.abiFilters.add('arm64-v8a')
-                          println "clubapp: abiFilters = " + dsl.defaultConfig.ndk.abiFilters
-                      } catch (Throwable t) {
-                          println "clubapp: abiFilters FAILED: " + t
-                      }
-                  }
-              }
-          }
-          GRADLE
-          cd android
-          gradle wrapper --gradle-version 9.6.0
-          ./gradlew -I /tmp/abi.init.gradle assembleRelease -PUNIVERSAL=true -PBUILD_TYPE=android_universal
-      # No upstream secrets here: the APK is signed with a throw-away key made
-      # on the spot, which is enough for a normal sideload install.
-      - name: sign apk
-        run: |
-          set -euo pipefail
-          keytool -genkeypair -keystore /tmp/clubapp.keystore -alias clubapp \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass clubapp-pass -keypass clubapp-pass -dname "CN=Clubapp"
-          BT=$(ls -d /usr/local/lib/android/sdk/build-tools/*/ | sort -V | tail -1)
-          "${BT}apksigner" sign \
-            --ks /tmp/clubapp.keystore \
-            --ks-pass "pass:clubapp-pass" \
-            --key-pass "pass:clubapp-pass" \
-            --ks-key-alias clubapp \
-            android/app/build/outputs/apk/release/*.apk
-          "${BT}apksigner" verify --verbose android/app/build/outputs/apk/release/*.apk || true
-      - name: inspect apk
-        run: |
-          BT=$(ls -d /usr/local/lib/android/sdk/build-tools/*/ | sort -V | tail -1)
-          APK=$(ls android/app/build/outputs/apk/release/*.apk | head -1)
-          echo "APK: $APK"
-          "${BT}apksigner" verify --verbose --print-certs "$APK" || true
-          "${BT}aapt2" dump badging "$APK" | grep -E "^package:|sdkVersion|targetSdkVersion|native-code" || true
-          echo "--- native libs in APK ---"
-          unzip -l "$APK" | grep -E " lib/" || true
+          rm -rf build
+          mkdir -p build && cd build
+          cmake .. -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_SYSTEM_NAME=Windows \
+            -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ \
+            -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc \
+            -DAETHER_TARGET=WIN_X64 \
+            -DRUST_TARGET="$TARGET" \
+            -DFCAE_VERSION_OVERRIDE="$FCAE_VERSION" \
+            -DFCAE_IS_PRERELEASE="$FCAE_IS_PRERELEASE"
+          cmake --build . --config Release
       - name: package
         run: |
           set -euo pipefail
           mkdir -p package
-          cp android/app/build/outputs/apk/release/*.apk package/Clubapp-v8a.apk
-          ls -lah package/
+          EXE="Clubapp-windows-x64.exe"
+          cp build/fcaevpn.exe "package/$EXE"
+          cd package
+          ls -la
+          test -f "$EXE"
+          IMPORTS="$(x86_64-w64-mingw32-objdump -p "$EXE" | awk '/DLL Name:/ { print $3 }' | sort -u)"
+          echo "$EXE imports:"
+          echo "$IMPORTS" | sed 's/^/  /'
+          if echo "$IMPORTS" | grep -qiE '^(libhev-socks5-tunnel\.dll|libyaml\.so|liblwip\.so|libhev-task-system\.so|msys-2\.0\.dll|wintun\.dll|zeptun\.dll|libfcae_psiphon\.dll|libgcc_s_seh-1\.dll|libstdc\+\+-6\.dll|libwinpthread-1\.dll)$'; then
+            echo "::error::$EXE imports a DLL that is supposed to be embedded or statically linked"
+            exit 1
+          fi
       - name: upload
         uses: actions/upload-artifact@v7
         with:
-          name: Clubapp-apk-v8a
+          name: Clubapp-windows-x64
           path: package/*
           if-no-files-found: error
