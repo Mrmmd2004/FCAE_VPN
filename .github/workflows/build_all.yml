@@ -1,4 +1,4 @@
-name: Clubapp APK (v7a)
+name: Clubapp APK (v8a)
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ env:
 
 jobs:
   android:
-    name: Clubapp android-v7a
+    name: Clubapp android-v8a
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
@@ -270,7 +270,7 @@ jobs:
       - name: install rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: armv7-linux-androideabi
+          targets: aarch64-linux-android
           components: rust-src
 
       - name: Build Psiphon Android AAR from pinned source
@@ -379,7 +379,7 @@ jobs:
           test -d "$SYSROOT/usr/include"
           LIBC_DIR="$(mktemp -d)"
           trap 'rm -rf "$LIBC_DIR"' EXIT
-          for abi in armeabi-v7a; do
+          for abi in arm64-v8a; do
             case "$abi" in
               arm64-v8a)   ZIG_TARGET=aarch64-linux-android.24; NDK_TARGET=aarch64-linux-android ;;
               armeabi-v7a) ZIG_TARGET=arm-linux-androideabi.24; NDK_TARGET=arm-linux-androideabi ;;
@@ -404,7 +404,7 @@ jobs:
             mv zig-out/lib/zeptun.lib zig-out/lib/libzeptun.a
           fi
           rm -f zig-out/lib/*.dll zig-out/lib/*.dll.a zig-out/lib/*.so* zig-out/lib/*.dylib
-          for abi in armeabi-v7a; do
+          for abi in arm64-v8a; do
             test -s "zig-out/android/prebuilt/$abi/libzeptun.a"
           done
         env:
@@ -420,7 +420,7 @@ jobs:
             exit 1
           fi
           TOOLCHAIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64"
-          ABIS="armeabi-v7a"
+          ABIS="arm64-v8a"
           STAGE="$RUNNER_TEMP/hev-android"
           rm -rf "$STAGE"
           for abi in $ABIS; do
@@ -500,7 +500,7 @@ jobs:
           export PATH="$BIN:$PATH"
           export ANDROID_NDK_HOME="$NDK"
           export ANDROID_NDK_ROOT="$NDK"
-          for TARGET_TRIPLE in armv7-linux-androideabi; do
+          for TARGET_TRIPLE in aarch64-linux-android; do
             echo "  -> Building for $TARGET_TRIPLE"
             if [ "$TARGET_TRIPLE" = "aarch64-linux-android" ]; then
               NDK_CLANG_PREFIX=aarch64-linux-android
@@ -566,7 +566,7 @@ jobs:
                   androidComponents.finalizeDsl { dsl ->
                       try {
                           dsl.defaultConfig.ndk.abiFilters.clear()
-                          dsl.defaultConfig.ndk.abiFilters.add('armeabi-v7a')
+                          dsl.defaultConfig.ndk.abiFilters.add('arm64-v8a')
                           println "clubapp: abiFilters = " + dsl.defaultConfig.ndk.abiFilters
                       } catch (Throwable t) {
                           println "clubapp: abiFilters FAILED: " + t
@@ -607,11 +607,11 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p package
-          cp android/app/build/outputs/apk/release/*.apk package/Clubapp-v7a.apk
+          cp android/app/build/outputs/apk/release/*.apk package/Clubapp-v8a.apk
           ls -lah package/
       - name: upload
         uses: actions/upload-artifact@v7
         with:
-          name: Clubapp-apk-v7a
+          name: Clubapp-apk-v8a
           path: package/*
           if-no-files-found: error
