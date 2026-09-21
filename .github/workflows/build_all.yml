@@ -428,6 +428,17 @@ jobs:
             exit 1
           fi
           test -s zig-out/lib/libzeptun.a
+      # Upstream bug: `mod platform;` is private but fcae-ffi calls
+      # platform::is_privileged() (E0603). Make the module public.
+      - name: patch upstream visibility bug (platform module)
+        run: |
+          set -euo pipefail
+          for f in core/fcae-ffi/bridges/zeptun/src/lib.rs core/fcae-ffi/bridges/hev-socks5-tunnel/src/lib.rs; do
+            test -f "$f"
+            sed -i -E 's/^([[:space:]]*)mod platform;/\1pub mod platform;/' "$f"
+            echo "== $f"
+            grep -n "mod platform" "$f" || true
+          done
       - name: build rust (engine + ffi, in-process)
         run: |
           set -euo pipefail
