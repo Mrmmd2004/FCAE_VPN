@@ -113,45 +113,18 @@
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCheckUpdates"
+                android:id="@+id/btnTelegram"
                 style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Check for Updates"
+                android:text="Telegram Channel"
                 android:textAllCaps="false"
                 android:textSize="14sp"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
                 android:minHeight="44dp"
                 android:textColor="#FF60A5FA" />
-
-            <TextView
-                android:id="@+id/updateStatus"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textSize="12sp"
-                android:textColor="#FF9AA3B5"
-                android:visibility="gone" />
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchAutoUpdate"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:checked="true"
-                android:text="Auto-check for updates"
-                android:textColor="#FFE0E4EE" />
-
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchPreReleases"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:checked="false"
-                android:text="Also check for pre-releases"
-                android:textColor="#FFE0E4EE" />
 
             <TextView
                 android:layout_width="match_parent"
