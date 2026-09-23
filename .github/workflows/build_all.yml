@@ -499,9 +499,17 @@ jobs:
               s = open(p, encoding="utf-8").read()
               orig = s
               stub = "\n#[cfg(not(windows))]\npub mod platform {\n    pub fn is_privileged() -> bool {\n        true\n    }\n}\n"
-              if add_stub and "#[cfg(not(windows))]" not in s:
+              # Idempotency check must be specific to THIS stub, not any
+              # "#[cfg(not(windows))]" in the file -- an unrelated block with
+              # that same cfg elsewhere previously caused the stub to be
+              # skipped, leaving platform gated to windows-only and Android
+              # builds failing with E0433.
+              if add_stub and stub.strip() not in s:
                   s = re.sub(r"(#\[cfg\(windows\)\]\s*mod platform;)", lambda m: m.group(1) + stub, s, count=1)
-              s = re.sub(r"(?m)^mod platform", "pub mod platform", s)
+              # Preserve indentation: the previous "^mod platform" (no
+              # capture group) only matched unindented declarations and
+              # silently skipped indented ones.
+              s = re.sub(r"(?m)^(\s*)mod platform", r"\1pub mod platform", s)
               if s != orig:
                   open(p, "w", encoding="utf-8").write(s)
                   print("patched:", p)
