@@ -468,8 +468,7 @@
                 android:id="@+id/contentTorPsiphon"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
+                android:orientation="vertical">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -690,8 +689,7 @@
                 android:id="@+id/contentAdvanced"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
+                android:orientation="vertical">
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchEch"
@@ -824,7 +822,44 @@
                     android:text="1820"
                     android:textColor="#FFE8ECF4"
                     android:textSize="14sp"
-                    android:layout_marginBottom="16dp" />
+                    android:layout_marginBottom="8dp" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchAutoUpdate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:checked="true"
+                    android:text="Check for updates on start"
+                    android:textColor="#FFE0E4EE" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchPreReleases"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Include pre-releases"
+                    android:textColor="#FFE0E4EE" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCheckUpdates"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:backgroundTint="#FF1A3A5C"
+                    android:text="Check for Updates"
+                    android:textAllCaps="false" />
+
+                <TextView
+                    android:id="@+id/updateStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginBottom="16dp"
+                    android:text=""
+                    android:textColor="#FF9AA3B5"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <!-- ============ SECTION: Zero Trust ============ -->
@@ -867,8 +902,7 @@
                 android:id="@+id/contentZeroTrust"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
+                android:orientation="vertical">
 
                 <TextView
                     android:layout_width="match_parent"
@@ -1032,8 +1066,7 @@
         android:id="@+id/layoutLogsContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:visibility="gone">
+        android:orientation="vertical">
 
         <FrameLayout
             android:layout_width="match_parent"
