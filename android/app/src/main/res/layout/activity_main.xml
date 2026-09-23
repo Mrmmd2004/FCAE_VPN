@@ -36,6 +36,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
+                android:gravity="center_vertical"
+                android:minHeight="32dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
                 android:textColor="#FF8A93A6"
                 android:textSize="12sp" />
 
@@ -109,127 +113,200 @@
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnTelegram"
+                android:id="@+id/btnCheckUpdates"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="match_parent"
-                android:layout_height="46dp"
-                android:layout_marginTop="10dp"
-                android:backgroundTint="#FF229ED9"
-                android:textColor="#FFFFFFFF"
-                android:text="Join our Telegram Channel"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Check for Updates"
                 android:textAllCaps="false"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:minHeight="44dp"
+                android:textColor="#FF60A5FA" />
 
-            <!-- ============ SECTION: Connection ============ -->
-            <LinearLayout
-                android:id="@+id/headerConnection"
+            <TextView
+                android:id="@+id/updateStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackground"
-                android:layout_marginTop="22dp"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp">
+                android:layout_marginTop="4dp"
+                android:textSize="12sp"
+                android:textColor="#FF9AA3B5"
+                android:visibility="gone" />
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Connection"
-                    android:textColor="#FF60A5FA"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/arrowConnection"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="\u25BE"
-                    android:textColor="#FF60A5FA"
-                    android:textSize="16sp" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#FF262636" />
-
-            <LinearLayout
-                android:id="@+id/contentConnection"
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchAutoUpdate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_marginTop="4dp"
+                android:checked="true"
+                android:text="Auto-check for updates"
+                android:textColor="#FFE0E4EE" />
 
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchPreReleases"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:checked="false"
+                android:text="Also check for pre-releases"
+                android:textColor="#FFE0E4EE" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Protocol"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
+
+            <Spinner
+                android:id="@+id/spinnerProtocol"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:popupBackground="#FF1E1E2C" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Mode"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
+
+            <Spinner
+                android:id="@+id/spinnerMode"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:popupBackground="#FF1E1E2C" />
+
+            <LinearLayout android:id="@+id/layoutTunSettings" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp" android:text="TUN Settings"
+                    android:textColor="#FF60A5FA" android:textSize="16sp" android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/textTunEngineLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="TUN Engine"
+                    android:textColor="#FF9AA3B5"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+
+                <Spinner
+                    android:id="@+id/spinnerTunEngine"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="4dp"
+                    android:background="#FF1E1E2C"
+                    android:popupBackground="#FF1E1E2C"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/textTunEngineHint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textColor="#FFB87333"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp" android:text="TUN MTU (bytes)"
+                    android:labelFor="@id/editTunMtu" android:textColor="#FF9AA3B5" android:textSize="13sp" />
+                <EditText
+                    android:id="@+id/editTunMtu"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="4dp"
+                    android:background="#FF1E1E2C"
+                    android:inputType="number"
+                    android:singleLine="true"
+                    android:maxLength="31"
+                    android:padding="12dp"
+                    android:text="1500"
+                    android:hint="1500"
+                    android:textColor="#FFE8ECF4"
+                    android:textColorHint="#FF6B7280"
+                    android:textSize="14sp" />
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="Protocol"
+                    android:text="TUN engine log"
                     android:textColor="#FF9AA3B5"
                     android:textSize="13sp" />
 
                 <Spinner
-                    android:id="@+id/spinnerProtocol"
+                    android:id="@+id/spinnerT2sLog"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginTop="4dp"
                     android:background="#FF1E1E2C"
                     android:popupBackground="#FF1E1E2C" />
-
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="Mode"
+                    android:text="TUN DNS — IPv4 (comma separated)"
                     android:textColor="#FF9AA3B5"
                     android:textSize="13sp" />
 
-                <Spinner
-                    android:id="@+id/spinnerMode"
+                <EditText
+                    android:id="@+id/editTunDnsV4"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginTop="4dp"
                     android:background="#FF1E1E2C"
-                    android:popupBackground="#FF1E1E2C" />
+                    android:inputType="textUri"
+                    android:padding="12dp"
+                    android:text="1.1.1.1,1.0.0.1"
+                    android:textColor="#FFE8ECF4"
+                    android:textSize="14sp" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="TUN DNS — IPv6 (comma separated)"
+                    android:textColor="#FF9AA3B5"
+                    android:textSize="13sp" />
 
-                <LinearLayout android:id="@+id/layoutTunSettings" android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+                <EditText
+                    android:id="@+id/editTunDnsV6"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="4dp"
+                    android:background="#FF1E1E2C"
+                    android:inputType="textUri"
+                    android:padding="12dp"
+                    android:text="2606:4700:4700::1111,2606:4700:4700::1001"
+                    android:textColor="#FFE8ECF4"
+                    android:textSize="14sp" />
+                <TextView android:id="@+id/textTunDnsHint" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:layout_marginTop="8dp"
+                    android:textColor="#FF9AA3B5" android:textSize="12sp"
+                    android:text="DNS queries stay inside the selected tunnel." />
+                <LinearLayout android:id="@+id/layoutTun2socksSettings" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:orientation="vertical">
                     <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp" android:text="TUN Settings"
+                        android:layout_marginTop="16dp" android:text="tun2socks TCP settings"
                         android:textColor="#FF60A5FA" android:textSize="14sp" android:textStyle="bold" />
                     <TextView
-                        android:id="@+id/textTunEngineLabel"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:text="TUN Engine"
+                        android:labelFor="@id/editTunTcpSndbuf"
+                        android:text="TCP send buffer (bytes)"
                         android:textColor="#FF9AA3B5"
-                        android:textSize="13sp"
-                        android:visibility="gone" />
-
-                    <Spinner
-                        android:id="@+id/spinnerTunEngine"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:layout_marginTop="4dp"
-                        android:background="#FF1E1E2C"
-                        android:popupBackground="#FF1E1E2C"
-                        android:visibility="gone" />
-
-                    <TextView
-                        android:id="@+id/textTunEngineHint"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:textColor="#FFB87333"
-                        android:textSize="12sp"
-                        android:visibility="gone" />
-                    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp" android:text="TUN MTU (bytes)"
-                        android:labelFor="@id/editTunMtu" android:textColor="#FF9AA3B5" android:textSize="13sp" />
+                        android:textSize="13sp" />
                     <EditText
-                        android:id="@+id/editTunMtu"
+                        android:id="@+id/editTunTcpSndbuf"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
                         android:layout_marginTop="4dp"
@@ -238,8 +315,8 @@
                         android:singleLine="true"
                         android:maxLength="31"
                         android:padding="12dp"
-                        android:text="1500"
-                        android:hint="1500"
+                        android:text="128000"
+                        android:hint="128000"
                         android:textColor="#FFE8ECF4"
                         android:textColorHint="#FF6B7280"
                         android:textSize="14sp" />
@@ -247,903 +324,627 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:text="TUN engine log"
+                        android:labelFor="@id/editTunTcpRcvbuf"
+                        android:text="TCP receive buffer (bytes)"
                         android:textColor="#FF9AA3B5"
                         android:textSize="13sp" />
-
-                    <Spinner
-                        android:id="@+id/spinnerT2sLog"
+                    <EditText
+                        android:id="@+id/editTunTcpRcvbuf"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
                         android:layout_marginTop="4dp"
                         android:background="#FF1E1E2C"
-                        android:popupBackground="#FF1E1E2C" />
-                    <TextView
+                        android:inputType="number"
+                        android:singleLine="true"
+                        android:maxLength="31"
+                        android:padding="12dp"
+                        android:text="128000"
+                        android:hint="128000"
+                        android:textColor="#FFE8ECF4"
+                        android:textColorHint="#FF6B7280"
+                        android:textSize="14sp" />
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchTunTcpAutoTuning"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:text="TUN DNS — IPv4 (comma separated)"
-                        android:textColor="#FF9AA3B5"
-                        android:textSize="13sp" />
-
-                    <EditText
-                        android:id="@+id/editTunDnsV4"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:layout_marginTop="4dp"
-                        android:background="#FF1E1E2C"
-                        android:inputType="textUri"
-                        android:padding="12dp"
-                        android:text="1.1.1.1,1.0.0.1"
-                        android:textColor="#FFE8ECF4"
-                        android:textSize="14sp" />
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:text="TUN DNS — IPv6 (comma separated)"
-                        android:textColor="#FF9AA3B5"
-                        android:textSize="13sp" />
-
-                    <EditText
-                        android:id="@+id/editTunDnsV6"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:layout_marginTop="4dp"
-                        android:background="#FF1E1E2C"
-                        android:inputType="textUri"
-                        android:padding="12dp"
-                        android:text="2606:4700:4700::1111,2606:4700:4700::1001"
-                        android:textColor="#FFE8ECF4"
-                        android:textSize="14sp" />
-                    <TextView android:id="@+id/textTunDnsHint" android:layout_width="match_parent"
-                        android:layout_height="wrap_content" android:layout_marginTop="8dp"
-                        android:textColor="#FF9AA3B5" android:textSize="12sp"
-                        android:text="DNS queries stay inside the selected tunnel." />
-                    <LinearLayout android:id="@+id/layoutTun2socksSettings" android:layout_width="match_parent"
-                        android:layout_height="wrap_content" android:orientation="vertical">
-                        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                            android:layout_marginTop="16dp" android:text="tun2socks TCP settings"
-                            android:textColor="#FF60A5FA" android:textSize="14sp" android:textStyle="bold" />
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:labelFor="@id/editTunTcpSndbuf"
-                            android:text="TCP send buffer (bytes)"
-                            android:textColor="#FF9AA3B5"
-                            android:textSize="13sp" />
-                        <EditText
-                            android:id="@+id/editTunTcpSndbuf"
-                            android:layout_width="match_parent"
-                            android:layout_height="48dp"
-                            android:layout_marginTop="4dp"
-                            android:background="#FF1E1E2C"
-                            android:inputType="number"
-                            android:singleLine="true"
-                            android:maxLength="31"
-                            android:padding="12dp"
-                            android:text="128000"
-                            android:hint="128000"
-                            android:textColor="#FFE8ECF4"
-                            android:textColorHint="#FF6B7280"
-                            android:textSize="14sp" />
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:labelFor="@id/editTunTcpRcvbuf"
-                            android:text="TCP receive buffer (bytes)"
-                            android:textColor="#FF9AA3B5"
-                            android:textSize="13sp" />
-                        <EditText
-                            android:id="@+id/editTunTcpRcvbuf"
-                            android:layout_width="match_parent"
-                            android:layout_height="48dp"
-                            android:layout_marginTop="4dp"
-                            android:background="#FF1E1E2C"
-                            android:inputType="number"
-                            android:singleLine="true"
-                            android:maxLength="31"
-                            android:padding="12dp"
-                            android:text="128000"
-                            android:hint="128000"
-                            android:textColor="#FFE8ECF4"
-                            android:textColorHint="#FF6B7280"
-                            android:textSize="14sp" />
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/switchTunTcpAutoTuning"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:text="TCP auto-tuning"
-                            android:checked="true"
-                            android:textColor="#FFE8ECF4" />
-                    </LinearLayout>
+                        android:layout_marginTop="8dp"
+                        android:text="TCP auto-tuning"
+                        android:checked="true"
+                        android:textColor="#FFE8ECF4" />
                 </LinearLayout>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Scan"
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="13sp" />
-
-                <Spinner
-                    android:id="@+id/spinnerScan"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:popupBackground="#FF1E1E2C" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="IP Version"
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="13sp" />
-
-                <Spinner
-                    android:id="@+id/spinnerIpVersion"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:popupBackground="#FF1E1E2C" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Obfuscation"
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="13sp" />
-
-                <Spinner
-                    android:id="@+id/spinnerNoize"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:popupBackground="#FF1E1E2C" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Engine log level"
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="13sp" />
-
-                <Spinner
-                    android:id="@+id/spinnerEngineLog"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:popupBackground="#FF1E1E2C"
-                    android:layout_marginBottom="16dp" />
             </LinearLayout>
 
-            <!-- ============ SECTION: Tor & Psiphon ============ -->
-            <LinearLayout
-                android:id="@+id/headerTorPsiphon"
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackground"
-                android:layout_marginTop="10dp"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp">
+                android:layout_marginTop="12dp"
+                android:text="Scan"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Tor &amp; Psiphon"
-                    android:textColor="#FF60A5FA"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/arrowTorPsiphon"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="\u25B8"
-                    android:textColor="#FF60A5FA"
-                    android:textSize="16sp" />
-            </LinearLayout>
-
-            <View
+            <Spinner
+                android:id="@+id/spinnerScan"
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#FF262636" />
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:popupBackground="#FF1E1E2C" />
 
-            <LinearLayout
-                android:id="@+id/contentTorPsiphon"
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_marginTop="12dp"
+                android:text="IP Version"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Egress"
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="13sp" />
+            <Spinner
+                android:id="@+id/spinnerIpVersion"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:popupBackground="#FF1E1E2C" />
 
-                <Spinner
-                    android:id="@+id/spinnerTor"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:popupBackground="#FF1E1E2C" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Obfuscation"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
 
-                <TextView
-                    android:id="@+id/textTorHint"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textColor="#FF5A6478"
-                    android:textSize="12sp"
-                    android:visibility="gone" />
+            <Spinner
+                android:id="@+id/spinnerNoize"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:popupBackground="#FF1E1E2C" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Tor bridges"
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="13sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Tor SOCKS port"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
 
-                <Spinner
-                    android:id="@+id/spinnerTorBridges"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:popupBackground="#FF1E1E2C" />
-
-                <EditText
-                    android:id="@+id/editTorBridgeLines"
-                    android:layout_width="match_parent"
-                    android:layout_height="100dp"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:gravity="top|start"
-                    android:hint="obfs4 1.2.3.4:443 FINGERPRINT cert=... iat-mode=0"
-                    android:inputType="textMultiLine|textVisiblePassword"
-                    android:padding="12dp"
-                    android:textColor="#FFE8ECF4"
-                    android:textColorHint="#FF5A6478"
-                    android:textSize="13sp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Tor SOCKS port"
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="13sp" />
-
-                <EditText
-                    android:id="@+id/editTorSocksPort"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:hint="1821"
-                    android:inputType="number"
-                    android:padding="10dp"
-                    android:textColor="#FFE8ECF4"
-                    android:textColorHint="#FF6B7280"
-                    android:textSize="14sp" />
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchTorHttp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Tor HTTP proxy"
-                    android:textColor="#FFE8ECF4" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Tor HTTP port"
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="13sp" />
-                <EditText
-                    android:id="@+id/editTorHttpPort"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:hint="1822"
-                    android:inputType="number"
-                    android:padding="10dp"
-                    android:textColor="#FFE8ECF4"
-                    android:textColorHint="#FF6B7280"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="Psiphon region"
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="13sp" />
-
-                <Spinner
-                    android:id="@+id/spinnerPsiphonRegion"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:popupBackground="#FF1E1E2C" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Psiphon transport"
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="13sp" />
-
-                <Spinner
-                    android:id="@+id/spinnerPsiphonTransport"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:popupBackground="#FF1E1E2C" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Psiphon SOCKS port"
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="13sp" />
-
-                <EditText
-                    android:id="@+id/editPsiphonSocksPort"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:hint="0"
-                    android:inputType="number"
-                    android:padding="10dp"
-                    android:textColor="#FFE8ECF4"
-                    android:textColorHint="#FF6B7280"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Psiphon HTTP port"
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="13sp" />
-
-                <EditText
-                    android:id="@+id/editPsiphonHttpPort"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:hint="0"
-                    android:inputType="number"
-                    android:padding="10dp"
-                    android:textColor="#FFE8ECF4"
-                    android:textColorHint="#FF6B7280"
-                    android:textSize="14sp"
-                    android:layout_marginBottom="16dp" />
-            </LinearLayout>
-
-            <!-- ============ SECTION: Advanced ============ -->
-            <LinearLayout
-                android:id="@+id/headerAdvanced"
+            <EditText
+                android:id="@+id/editTorSocksPort"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackground"
-                android:layout_marginTop="10dp"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp">
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:hint="1821"
+                android:inputType="number"
+                android:padding="10dp"
+                android:textColor="#FFE8ECF4"
+                android:textColorHint="#FF6B7280"
+                android:textSize="14sp" />
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Advanced"
-                    android:textColor="#FF60A5FA"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/arrowAdvanced"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="\u25B8"
-                    android:textColor="#FF60A5FA"
-                    android:textSize="16sp" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#FF262636" />
-
-            <LinearLayout
-                android:id="@+id/contentAdvanced"
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchTorHttp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchEch"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:checked="true"
-                    android:text="ECH (Encrypted Client Hello)"
-                    android:textColor="#FFE0E4EE" />
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchQuick"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Quick reconnect"
-                    android:textColor="#FFE0E4EE" />
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchLan"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="LAN sharing"
-                    android:textColor="#FFE0E4EE" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="MASQUE SNI (optional)"
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="13sp" />
-
-                <EditText
-                    android:id="@+id/editSni"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:hint="consumer-masque..."
-                    android:inputType="textUri"
-                    android:padding="12dp"
-                    android:textColor="#FFE8ECF4"
-                    android:textColorHint="#FF5A6478"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Force Peer (optional)"
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="13sp" />
-
-                <EditText
-                    android:id="@+id/editForcePeer"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:hint="ip:port"
-                    android:inputType="text"
-                    android:padding="12dp"
-                    android:textColor="#FFE8ECF4"
-                    android:textColorHint="#FF5A6478"
-                    android:textSize="14sp" />
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchLogging"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:checked="true"
-                    android:text="Enable logging"
-                    android:textColor="#FFE0E4EE" />
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchSocks"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:checked="true"
-                    android:text="SOCKS5 proxy"
-                    android:textColor="#FFE0E4EE" />
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchHttp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:checked="true"
-                    android:text="HTTP proxy"
-                    android:textColor="#FFE0E4EE" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="SOCKS5 port"
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="13sp" />
-
-                <EditText
-                    android:id="@+id/editSocksPort"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:inputType="number"
-                    android:padding="12dp"
-                    android:text="1819"
-                    android:textColor="#FFE8ECF4"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="HTTP proxy port"
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="13sp" />
-
-                <EditText
-                    android:id="@+id/editHttpPort"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:inputType="number"
-                    android:padding="12dp"
-                    android:text="1820"
-                    android:textColor="#FFE8ECF4"
-                    android:textSize="14sp"
-                    android:layout_marginBottom="8dp" />
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchAutoUpdate"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:checked="true"
-                    android:text="Check for updates on start"
-                    android:textColor="#FFE0E4EE" />
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchPreReleases"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Include pre-releases"
-                    android:textColor="#FFE0E4EE" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnCheckUpdates"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:backgroundTint="#FF1A3A5C"
-                    android:text="Check for Updates"
-                    android:textAllCaps="false" />
-
-                <TextView
-                    android:id="@+id/updateStatus"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:layout_marginBottom="16dp"
-                    android:text=""
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="12sp"
-                    android:visibility="gone" />
-            </LinearLayout>
-
-            <!-- ============ SECTION: Zero Trust ============ -->
-            <LinearLayout
-                android:id="@+id/headerZeroTrust"
+                android:text="Tor HTTP proxy"
+                android:textColor="#FFE8ECF4" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Tor HTTP port"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
+            <EditText
+                android:id="@+id/editTorHttpPort"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackground"
-                android:layout_marginTop="10dp"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp">
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:hint="1822"
+                android:inputType="number"
+                android:padding="10dp"
+                android:textColor="#FFE8ECF4"
+                android:textColorHint="#FF6B7280"
+                android:textSize="14sp" />
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Zero Trust (Teams)"
-                    android:textColor="#FF60A5FA"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Psiphon region"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
 
-                <TextView
-                    android:id="@+id/arrowZeroTrust"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="\u25B8"
-                    android:textColor="#FF60A5FA"
-                    android:textSize="16sp" />
-            </LinearLayout>
-
-            <View
+            <Spinner
+                android:id="@+id/spinnerPsiphonRegion"
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#FF262636" />
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:popupBackground="#FF1E1E2C" />
 
-            <LinearLayout
-                android:id="@+id/contentZeroTrust"
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Psiphon transport"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
+
+            <Spinner
+                android:id="@+id/spinnerPsiphonTransport"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:popupBackground="#FF1E1E2C" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Psiphon SOCKS port"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
+
+            <EditText
+                android:id="@+id/editPsiphonSocksPort"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:hint="0"
+                android:inputType="number"
+                android:padding="10dp"
+                android:textColor="#FFE8ECF4"
+                android:textColorHint="#FF6B7280"
+                android:textSize="14sp" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Team name"
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="13sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Psiphon HTTP port"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
 
-                <EditText
-                    android:id="@+id/editTeam"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:hint="my-team"
-                    android:inputType="text"
-                    android:padding="12dp"
-                    android:textColor="#FFE8ECF4"
-                    android:textColorHint="#FF5A6478"
-                    android:textSize="14sp" />
+            <EditText
+                android:id="@+id/editPsiphonHttpPort"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:hint="0"
+                android:inputType="number"
+                android:padding="10dp"
+                android:textColor="#FFE8ECF4"
+                android:textColorHint="#FF6B7280"
+                android:textSize="14sp" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Access token (JWT)"
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="13sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Engine log level"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
 
-                <EditText
-                    android:id="@+id/editAccessToken"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:hint="token=..."
-                    android:inputType="text"
-                    android:padding="12dp"
-                    android:textColor="#FFE8ECF4"
-                    android:textColorHint="#FF5A6478"
-                    android:textSize="14sp" />
+            <Spinner
+                android:id="@+id/spinnerEngineLog"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:popupBackground="#FF1E1E2C" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Email (for OTP login)"
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="13sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Egress"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
 
-                <EditText
-                    android:id="@+id/editAccessEmail"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:hint="user@example.com"
-                    android:inputType="textEmailAddress"
-                    android:padding="12dp"
-                    android:textColor="#FFE8ECF4"
-                    android:textColorHint="#FF5A6478"
-                    android:textSize="14sp" />
+            <Spinner
+                android:id="@+id/spinnerTor"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:popupBackground="#FF1E1E2C" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Routing file (optional)"
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="13sp" />
+            <TextView
+                android:id="@+id/textTorHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="#FF5A6478"
+                android:textSize="12sp"
+                android:visibility="gone" />
 
-                <EditText
-                    android:id="@+id/editRoutesFile"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:hint="/path/to/routes.txt"
-                    android:inputType="text"
-                    android:padding="12dp"
-                    android:textColor="#FFE8ECF4"
-                    android:textColorHint="#FF5A6478"
-                    android:textSize="14sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Tor bridges"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Inline routing rules"
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="13sp" />
+            <Spinner
+                android:id="@+id/spinnerTorBridges"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:popupBackground="#FF1E1E2C" />
 
-                <EditText
-                    android:id="@+id/editRoutesInline"
-                    android:layout_width="match_parent"
-                    android:layout_height="120dp"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:gravity="top|start"
-                    android:hint="[direct]ip:190.9.2.4,domain.com [block]gazo.com,10.0.0.0/8"
-                    android:inputType="textMultiLine|textVisiblePassword"
-                    android:padding="12dp"
-                    android:textColor="#FFE8ECF4"
-                    android:textColorHint="#FF5A6478"
-                    android:textSize="14sp" />
+            <EditText
+                android:id="@+id/editTorBridgeLines"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:gravity="top|start"
+                android:hint="obfs4 1.2.3.4:443 FINGERPRINT cert=... iat-mode=0"
+                android:inputType="textMultiLine|textVisiblePassword"
+                android:padding="12dp"
+                android:textColor="#FFE8ECF4"
+                android:textColorHint="#FF5A6478"
+                android:textSize="13sp" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Sysprofile (performance)"
-                    android:textColor="#FF9AA3B5"
-                    android:textSize="13sp" />
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchEch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="ECH (Encrypted Client Hello)"
+                android:textColor="#FFE0E4EE" />
 
-                <Spinner
-                    android:id="@+id/spinnerSysprofile"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginTop="4dp"
-                    android:background="#FF1E1E2C"
-                    android:popupBackground="#FF1E1E2C"
-                    android:layout_marginBottom="16dp" />
-            </LinearLayout>
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchQuick"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Quick reconnect"
+                android:textColor="#FFE0E4EE" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchLan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="LAN sharing"
+                android:textColor="#FFE0E4EE" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="MASQUE SNI (optional)"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
+
+            <EditText
+                android:id="@+id/editSni"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:hint="consumer-masque..."
+                android:inputType="textUri"
+                android:padding="12dp"
+                android:textColor="#FFE8ECF4"
+                android:textColorHint="#FF5A6478"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Force Peer (optional)"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
+
+            <EditText
+                android:id="@+id/editForcePeer"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:hint="ip:port"
+                android:inputType="text"
+                android:padding="12dp"
+                android:textColor="#FFE8ECF4"
+                android:textColorHint="#FF5A6478"
+                android:textSize="14sp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchLogging"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:checked="true"
+                android:text="Enable logging"
+                android:textColor="#FFE0E4EE" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchSocks"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:checked="true"
+                android:text="SOCKS5 proxy"
+                android:textColor="#FFE0E4EE" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchHttp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:checked="true"
+                android:text="HTTP proxy"
+                android:textColor="#FFE0E4EE" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="SOCKS5 port"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
+
+            <EditText
+                android:id="@+id/editSocksPort"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:inputType="number"
+                android:padding="12dp"
+                android:text="1819"
+                android:textColor="#FFE8ECF4"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="HTTP proxy port"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
+
+            <EditText
+                android:id="@+id/editHttpPort"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:inputType="number"
+                android:padding="12dp"
+                android:text="1820"
+                android:textColor="#FFE8ECF4"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Zero Trust (Teams)"
+                android:textColor="#FF60A5FA"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Team name"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
+
+            <EditText
+                android:id="@+id/editTeam"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:hint="my-team"
+                android:inputType="text"
+                android:padding="12dp"
+                android:textColor="#FFE8ECF4"
+                android:textColorHint="#FF5A6478"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Access token (JWT)"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
+
+            <EditText
+                android:id="@+id/editAccessToken"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:hint="token=..."
+                android:inputType="text"
+                android:padding="12dp"
+                android:textColor="#FFE8ECF4"
+                android:textColorHint="#FF5A6478"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Email (for OTP login)"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
+
+            <EditText
+                android:id="@+id/editAccessEmail"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:hint="user@example.com"
+                android:inputType="textEmailAddress"
+                android:padding="12dp"
+                android:textColor="#FFE8ECF4"
+                android:textColorHint="#FF5A6478"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Routing file (optional)"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
+
+            <EditText
+                android:id="@+id/editRoutesFile"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:hint="/path/to/routes.txt"
+                android:inputType="text"
+                android:padding="12dp"
+                android:textColor="#FFE8ECF4"
+                android:textColorHint="#FF5A6478"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Inline routing rules"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
+
+            <EditText
+                android:id="@+id/editRoutesInline"
+                android:layout_width="match_parent"
+                android:layout_height="120dp"
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:gravity="top|start"
+                android:hint="[direct]ip:190.9.2.4,domain.com [block]gazo.com,10.0.0.0/8"
+                android:inputType="textMultiLine|textVisiblePassword"
+                android:padding="12dp"
+                android:textColor="#FFE8ECF4"
+                android:textColorHint="#FF5A6478"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Sysprofile (performance)"
+                android:textColor="#FF9AA3B5"
+                android:textSize="13sp" />
+
+            <Spinner
+                android:id="@+id/spinnerSysprofile"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="#FF1E1E2C"
+                android:popupBackground="#FF1E1E2C" />
 
         </LinearLayout>
     </ScrollView>
 
-    <!-- ============ Logs (collapsible) ============ -->
-    <LinearLayout
-        android:id="@+id/headerLogs"
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:clickable="true"
-        android:focusable="true"
-        android:background="?attr/selectableItemBackground"
         android:paddingStart="20dp"
         android:paddingEnd="20dp"
         android:paddingTop="12dp"
-        android:paddingBottom="6dp">
+        android:paddingBottom="6dp"
+        android:text="Logs"
+        android:textColor="#FF9AA3B5"
+        android:textSize="13sp" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="220dp">
+    <ScrollView
+        android:id="@+id/logScroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FF0C0C14"
+        android:scrollbars="vertical"
+        android:fadeScrollbars="false"
+        android:scrollbarAlwaysDrawVerticalTrack="true"
+        android:scrollbarStyle="insideInset"
+        android:scrollbarTrackVertical="@android:color/darker_gray"
+        android:scrollbarThumbVertical="@android:color/holo_blue_light"
+        android:padding="10dp">
 
         <TextView
-            android:layout_width="0dp"
+            android:id="@+id/logText"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Logs"
-            android:textColor="#FF9AA3B5"
-            android:textSize="13sp" />
-
-        <TextView
-            android:id="@+id/arrowLogs"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="\u25B8"
-            android:textColor="#FF60A5FA"
-            android:textSize="16sp" />
-    </LinearLayout>
+            android:fontFamily="monospace"
+            android:textColor="#FFA0A8B8"
+            android:textSize="11sp"
+            android:textIsSelectable="true" />
+    </ScrollView>
+    </FrameLayout>
 
     <LinearLayout
-        android:id="@+id/layoutLogsContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="8dp">
 
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="220dp">
-            <ScrollView
-                android:id="@+id/logScroll"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="#FF0C0C14"
-                android:scrollbars="vertical"
-                android:fadeScrollbars="false"
-                android:scrollbarAlwaysDrawVerticalTrack="true"
-                android:scrollbarStyle="insideInset"
-                android:scrollbarTrackVertical="@android:color/darker_gray"
-                android:scrollbarThumbVertical="@android:color/holo_blue_light"
-                android:padding="10dp">
-
-                <TextView
-                    android:id="@+id/logText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="monospace"
-                    android:textColor="#FFA0A8B8"
-                    android:textSize="11sp"
-                    android:textIsSelectable="true" />
-            </ScrollView>
-        </FrameLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCopyLogs"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingStart="12dp"
-            android:paddingEnd="20dp"
-            android:paddingTop="4dp"
-            android:paddingBottom="8dp">
+            android:insetLeft="0dp"
+            android:insetRight="0dp"
+            android:backgroundTint="#FF1A3A5C"
+            android:textColor="#FFFFFFFF"
+            android:text="Copy logs"
+            android:textAllCaps="false" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCopyLogs"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:insetLeft="0dp"
-                android:insetRight="0dp"
-                android:backgroundTint="#FF1A3A5C"
-                android:textColor="#FFFFFFFF"
-                android:text="Copy logs"
-                android:textAllCaps="false" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnClearLogs"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:insetLeft="0dp"
+            android:insetRight="0dp"
+            android:backgroundTint="#FF1A3A5C"
+            android:textColor="#FFFFFFFF"
+            android:text="Clear logs"
+            android:textAllCaps="false" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnClearLogs"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:insetLeft="0dp"
-                android:insetRight="0dp"
-                android:backgroundTint="#FF1A3A5C"
-                android:textColor="#FFFFFFFF"
-                android:text="Clear logs"
-                android:textAllCaps="false" />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
 
-            <View
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnLatestLogs"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:insetLeft="0dp"
-                android:insetRight="0dp"
-                android:backgroundTint="#FF1A3A5C"
-                android:textColor="#FFFFFFFF"
-                android:text="Latest"
-                android:textAllCaps="false"
-                android:contentDescription="Jump to latest log and resume following" />
-        </LinearLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLatestLogs"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:insetLeft="0dp"
+            android:insetRight="0dp"
+            android:backgroundTint="#FF1A3A5C"
+            android:textColor="#FFFFFFFF"
+            android:text="Latest"
+            android:textAllCaps="false"
+            android:contentDescription="Jump to latest log and resume following" />
     </LinearLayout>
 
 </LinearLayout>
