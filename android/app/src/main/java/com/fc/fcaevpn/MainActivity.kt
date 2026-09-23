@@ -57,9 +57,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnTunStop: MaterialButton
     private lateinit var btnTunStart: MaterialButton
     private lateinit var layoutTunPauseResume: android.view.View
-    private lateinit var btnCheckUpdates: MaterialButton
-    private lateinit var updateStatus: TextView
-    private var updateAvailableInfo: FcaeUpdateInfo? = null
+    private lateinit var btnTelegram: MaterialButton
     private lateinit var spinnerProtocol: Spinner
     private lateinit var spinnerMode: Spinner
     private lateinit var spinnerScan: Spinner
@@ -96,8 +94,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var switchTorHttp: SwitchMaterial
     private lateinit var editTorHttpPort: android.widget.EditText
     private lateinit var switchHttp: SwitchMaterial
-    private lateinit var switchAutoUpdate: SwitchMaterial
-    private lateinit var switchPreReleases: SwitchMaterial
     private lateinit var spinnerSysprofile: Spinner
     private lateinit var editSni: android.widget.EditText
     private lateinit var editForcePeer: android.widget.EditText
@@ -484,8 +480,7 @@ class MainActivity : AppCompatActivity() {
         btnTunStop = findViewById(R.id.btnTunStop)
         btnTunStart = findViewById(R.id.btnTunStart)
         layoutTunPauseResume = findViewById(R.id.layoutTunPauseResume)
-        btnCheckUpdates = findViewById(R.id.btnCheckUpdates)
-        updateStatus = findViewById(R.id.updateStatus)
+        btnTelegram = findViewById(R.id.btnTelegram)
         spinnerProtocol = findViewById(R.id.spinnerProtocol)
         spinnerMode = findViewById(R.id.spinnerMode)
         spinnerScan = findViewById(R.id.spinnerScan)
@@ -514,8 +509,6 @@ class MainActivity : AppCompatActivity() {
         switchHttp.text = "Aether HTTP proxy"
         switchTorHttp = findViewById(R.id.switchTorHttp)
         editTorHttpPort = findViewById(R.id.editTorHttpPort)
-        switchAutoUpdate = findViewById(R.id.switchAutoUpdate)
-        switchPreReleases = findViewById(R.id.switchPreReleases)
         spinnerSysprofile = findViewById(R.id.spinnerSysprofile)
         editSni = findViewById(R.id.editSni)
         editForcePeer = findViewById(R.id.editForcePeer)
@@ -841,16 +834,7 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "Logs copied", Toast.LENGTH_SHORT).show()
         }
 
-        btnCheckUpdates.setOnClickListener {
-            // If update check already completed and update is available,
-            // show the dialog instead of checking again.
-            val cached = updateAvailableInfo
-            if (cached != null && cached.updateAvailable) {
-                showUpdateDialog(cached)
-            } else {
-                checkForUpdates()
-            }
-        }
+        btnTelegram.setOnClickListener { openExternal(LINK_TELEGRAM) }
 
         updateButton()
 
@@ -955,13 +939,6 @@ class MainActivity : AppCompatActivity() {
                         connecting = false
                         updateButton()
                     }
-                }
-            }
-
-            // Auto-trigger update check once on app open if enabled
-            handler.post {
-                if (switchAutoUpdate.isChecked) {
-                    checkForUpdates()
                 }
             }
         }
@@ -1352,8 +1329,6 @@ class MainActivity : AppCompatActivity() {
             putBoolean("torHttp", switchTorHttp.isChecked)
             putString("torHttpPort", editTorHttpPort.text.toString())
             putBoolean("http", switchHttp.isChecked)
-            putBoolean("autoUpdate", switchAutoUpdate.isChecked)
-            putBoolean("checkPreReleases", switchPreReleases.isChecked)
             putString("sni", editSni.text.toString().trim())
             putString("forcePeer", editForcePeer.text.toString().trim())
             putInt("sysprofile", spinnerSysprofile.selectedItemPosition)
@@ -1432,8 +1407,6 @@ class MainActivity : AppCompatActivity() {
         switchTorHttp.isChecked = prefs.getBoolean("torHttp", false)
         editTorHttpPort.setText(prefs.getString("torHttpPort", "1822"))
         switchHttp.isChecked = prefs.getBoolean("http", true)
-        switchAutoUpdate.isChecked = prefs.getBoolean("autoUpdate", true)
-        switchPreReleases.isChecked = prefs.getBoolean("checkPreReleases", false)
         editSni.setText(prefs.getString("sni", ""))
         editForcePeer.setText(prefs.getString("forcePeer", ""))
         spinnerSysprofile.setSelection(prefs.getInt("sysprofile", 0))
@@ -1871,68 +1844,6 @@ class MainActivity : AppCompatActivity() {
     }, "Disconnect-Background").start()
 }
 
-    private fun checkForUpdates() {
-        btnCheckUpdates.isEnabled = false
-        btnCheckUpdates.text = "Checking..."
-        updateStatus.visibility = android.view.View.VISIBLE
-        updateStatus.text = "Checking for updates..."
-        updateAvailableInfo = null  // Clear cached info on new check
-
-        NativeEngine.nativeCheckForUpdates(BuildConfig.APP_VERSION, switchPreReleases.isChecked)
-
-        // Poll for result on a background thread
-        Thread {
-            try {
-                // Wait up to ~15 seconds for the check to complete.
-                // Poll FIRST, then sleep — the old loop slept 500ms before
-                // its first look, so even an instant result took 500ms+ to
-                // show. 333ms cadence keeps the result display snappy.
-                var info: FcaeUpdateInfo? = null
-                for (i in 0..45) {
-                    val poll = NativeEngine.nativePollUpdate()
-                    if (poll.checkDone) {
-                        info = poll
-                        break
-                    }
-                    Thread.sleep(333)
-                }
-                if (info == null) {
-                    val poll = NativeEngine.nativePollUpdate()
-                    info = poll
-                }
-
-                handler.post {
-                    btnCheckUpdates.isEnabled = true
-                    if (info.updateAvailable) {
-                        btnCheckUpdates.text = "Update Available!"
-                        btnCheckUpdates.setTextColor(COLOR_UPDATE_AVAILABLE)
-                        updateStatus.text = info.statusMessage
-                        // Don't auto-show dialog — just update the button.
-                        // User clicks the button to open the dialog.
-                        updateAvailableInfo = info
-                    } else if (info.checkDone) {
-                        btnCheckUpdates.text = "Check for Updates"
-                        btnCheckUpdates.setTextColor(COLOR_UPDATE_IDLE)
-                        updateStatus.text = info.statusMessage
-                        updateAvailableInfo = null
-                    } else {
-                        btnCheckUpdates.text = "Check for Updates"
-                        btnCheckUpdates.setTextColor(COLOR_UPDATE_IDLE)
-                        updateStatus.text = "Check timed out"
-                        updateAvailableInfo = null
-                    }
-                }
-            } catch (e: Throwable) {
-                handler.post {
-                    btnCheckUpdates.isEnabled = true
-                    btnCheckUpdates.text = "Check for Updates"
-                    btnCheckUpdates.setTextColor(COLOR_UPDATE_IDLE)
-                    updateStatus.text = "Update check failed: ${e.message}"
-                }
-            }
-        }.start()
-    }
-
     private fun addLink(s: android.text.SpannableString, label: String, url: String) {
         var i = s.indexOf(label)
         while (i >= 0) {
@@ -2026,32 +1937,6 @@ class MainActivity : AppCompatActivity() {
             .create()
         dialog.setCanceledOnTouchOutside(true)
         dialog.show()
-        dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE)?.setTextColor(Color.CYAN)
-    }
-
-    private fun showUpdateDialog(info: FcaeUpdateInfo) {
-        val msg = android.text.SpannableString(buildString {
-            append("Current: $displayVersion  |  ${if (buildIsPrerelease) "pre-release" else "release"}\n")
-            append("Latest: ${info.latestVersion}\n")
-            if (info.releaseDate.isNotEmpty()) append("Date: ${info.releaseDate}\n")
-            if (info.releaseNotes.isNotEmpty()) append("\nNotes:\n${info.releaseNotes}\n")
-            if (info.downloadUrl.isNotEmpty()) append("\nDownload: ${info.downloadUrl}")
-        })
-        if (info.downloadUrl.isNotEmpty()) addLink(msg, info.downloadUrl, info.downloadUrl)
-        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Update Available")
-            .setMessage(msg)
-            .setPositiveButton("Open") { _, _ ->
-                if (info.downloadUrl.isNotEmpty()) openExternal(info.downloadUrl)
-            }
-            .setNegativeButton("Close", null)
-            .create()
-        // Allow dismissing by tapping outside the dialog
-        dialog.setCanceledOnTouchOutside(true)
-        dialog.show()
-        // Force the message and button text to white (theme default was dark blue)
-        showDialogMessage(dialog, msg)
-        dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)?.setTextColor(Color.CYAN)
         dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEGATIVE)?.setTextColor(Color.CYAN)
     }
 
@@ -2567,7 +2452,7 @@ class MainActivity : AppCompatActivity() {
         // holding this value defers to the engine (see deferredTorSocksPort).
         private const val TOR_SOCKS_ENGINE_DEFAULT = 1821
 
-        private const val LINK_TELEGRAM = "https://t.me/FCAE_VPN"
+        private const val LINK_TELEGRAM = "https://t.me/Clubapp8"
         private const val LINK_GITHUB = "https://github.com/FCFlenkchy/FCAE_VPN"
         private const val LINK_CREDITS = LINK_GITHUB + "#credits"
 
@@ -2586,8 +2471,6 @@ class MainActivity : AppCompatActivity() {
         private val COLOR_PROGRESS = Color.parseColor("#60A5FA")
         private val COLOR_DISCONNECT_BTN = Color.parseColor("#B91C1C")
         private val COLOR_CONNECT_BTN = Color.parseColor("#15803D")
-        private val COLOR_UPDATE_AVAILABLE = Color.parseColor("#FF8C00")  // orange
-        private val COLOR_UPDATE_IDLE = Color.parseColor("#60A5FA")        // blue theme
         private val COLOR_LINK = Color.parseColor("#60A5FA")
     }
 }
