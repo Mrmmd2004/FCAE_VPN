@@ -44,17 +44,20 @@
 //! Do not ship a stub build: it reports the engine as unavailable in the UI.
 
 mod socks5p;
-mod socks5t;
 
-#[cfg(any(hev_linked, hev_dynamic))]
+#[cfg(not(windows))]
+mod engine;
+#[cfg(windows)]
+#[path = "windows.rs"]
 mod engine;
 
-/// Wintun only: the in-process backend stages the driver DLL from here.
-#[cfg(windows)]
-mod platform;
+/// Platform glue: the privilege probe compiles on every target (the FFI
+/// layer's `fcae_is_privileged()` reaches it as
+/// `fcae_bridge_hev_socks5_tunnel::platform::is_privileged`), the Wintun
+/// DLL staging is Windows-only and cfg-gated inside the module.
+pub mod platform;
 
-#[cfg(any(hev_linked, hev_dynamic))]
-pub use engine::HevSocks5TunnelBridge;
+pub use engine::{HevSocks5TunnelBridge, unavailable_reason};
 
 /// The wintun adapter GUID every FCAE TUN engine pins.
 ///
@@ -113,6 +116,29 @@ pub(crate) fn log_level(t2s_log_level: u8) -> &'static str {
         _ => "error",
     }
 }
+
+pub(crate) fn generate_config(cfg: &fcae_runtime::config::SessionConfig, socks: std::net::SocketAddr) -> fcae_runtime::error::Result<(std::net::SocketAddr, String)> {
+    let mut yaml = String::with_capacity(256);
+    yaml.push_str("tunnel:\n");
+    yaml.push_str(&format!("  name: '{}'\n", cfg.tun.name.replace('\'', "''")));
+    #[cfg(windows)]
+    yaml.push_str(&format!("  guid: {}\n", crate::WINTUN_ADAPTER_GUID));
+    yaml.push_str(&format!("  mtu: {}\n", cfg.tun.mtu));
+    yaml.push_str("  multi-queue: false\n");
+    yaml.push_str(&format!("  ipv4: {}\n", bare_address(&cfg.tun.ipv4)));
+    if let Some(ipv6) = &cfg.tun.ipv6 {
+        yaml.push_str(&format!("  ipv6: '{}'\n", bare_address(ipv6)));
+    }
+    yaml.push_str("  icmp: 'off'\n\n");
+    yaml.push_str("socks5:\n");
+    yaml.push_str(&format!("  port: {}\n", socks.port()));
+    yaml.push_str(&format!("  address: {}\n", socks.ip()));
+    yaml.push_str("  udp: 'udp'\n");
+    yaml.push_str("\nmisc:\n");
+    yaml.push_str(&format!("  log-level: '{}'\n", log_level(cfg.tun.t2s_log_level)));
+    Ok((socks, yaml))
+}
+
 
 #[cfg(test)]
 mod tests {
